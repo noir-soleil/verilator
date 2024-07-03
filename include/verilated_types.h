@@ -472,6 +472,10 @@ std::string VL_TO_STRING(const VlWide<T_Words>& obj) {
 }
 
 //===================================================================
+// Declaration for VLQueue::operator=(VlUnpacked)
+template <class T_Value, std::size_t T_Depth> struct VlUnpacked;
+
+//===================================================================
 // Verilog queue and dynamic array container
 // There are no multithreaded locks on this; the base variable must
 // be protected by other means
@@ -510,6 +514,14 @@ public:
     VlQueue operator=(const VlQueue<T_Value, U_MaxSize>& rhs) {
         m_deque = rhs.privateDeque();
         if (VL_UNLIKELY(T_MaxSize && T_MaxSize < m_deque.size())) m_deque.resize(T_MaxSize - 1);
+        return *this;
+    }
+
+    template <class R_Value, std::size_t R_Depth>
+    VlQueue operator=(const struct VlUnpacked<R_Value, R_Depth>& rhs) {
+        m_deque.resize((T_MaxSize && T_MaxSize < R_Depth) ? T_MaxSize : R_Depth);
+        std::size_t i = 0;
+        for (auto &e : m_deque) e = rhs[i++];
         return *this;
     }
 
